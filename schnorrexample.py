@@ -12,7 +12,7 @@ from salsa20 import XSalsa20_xor
 
 Alice_private, Alice_public = gen_keypair(secp256k1)
 cipher_elg = ElGamal(secp256k1)
-plaintext = b"chkjsncsekjncsekjncsjkenfes"
+plaintext = b"message"
 secret_pre = urandom(30)
 secret_suf = urandom(26)
 secret_total = secret_pre + secret_suf[:2]
