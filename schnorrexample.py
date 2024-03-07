@@ -2,11 +2,7 @@ import schnorr
 from ecc.curve import secp256k1
 from ecc.key import gen_keypair
 from ecc.cipher import ElGamal
-import base64
 from os import urandom
-import hashlib
-import binascii
-import unittest
 from salsa20 import XSalsa20_xor
 
 
