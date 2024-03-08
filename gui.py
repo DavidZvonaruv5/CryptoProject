@@ -118,8 +118,8 @@ def Alice_send():
     Alice_point_public = (Alice_public.x, Alice_public.y)
     ciphertext_base64 = base64.b64encode(ciphertext).decode("utf-8")
     add_log_message("generated base64 ciphertext: " + ciphertext_base64)
-    C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Bob_public)
-    C1_suf, C2_suf = cipher_elg.encrypt(secret_suf, Bob_public)
+    C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Bob_public, Alice_private)
+    C1_suf, C2_suf = cipher_elg.encrypt(secret_suf, Bob_public, Alice_private)
     secret_key = [C1_pre, C2_pre, C1_suf, C2_suf]
     add_log_message("encrypted secret key")
     # send to Bob
@@ -170,8 +170,8 @@ def Bob_send():
     Bob_point_public = (Bob_public.x, Bob_public.y)
     ciphertext_base64 = base64.b64encode(ciphertext).decode("utf-8")
     add_log_message("generated base64 ciphertext: " + ciphertext_base64)
-    C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Alice_public)
-    C1_suf, C2_suf = cipher_elg.encrypt(secret_suf, Alice_public)
+    C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Alice_public, Alice_private)
+    C1_suf, C2_suf = cipher_elg.encrypt(secret_suf, Alice_public, Alice_private)
     secret_key = [C1_pre, C2_pre, C1_suf, C2_suf]
     add_log_message("encrypted secret key")
     # send to Alice
@@ -180,7 +180,6 @@ def Bob_send():
     bob_text_area.insert(tk.END, "\n")
     bob_text_area.see(tk.END)
     alice_text_area.see(tk.END)
-
 
 def Alice_receive(ciphertext, sig, secret_key, Bob_point_public):
 
