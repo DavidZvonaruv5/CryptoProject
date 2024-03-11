@@ -71,9 +71,15 @@ def key_to_string(key):
 
 
 def generate_keys():
-    global Alice_private, Alice_public, Bob_private, Bob_public, keys_generated
+    global Alice_private, Alice_public, Bob_private, Bob_public, keys_generated, Alice_private_sign, Alice_public_sign,Bob_private_sign, Bob_public_sign
+    
+    # Generate public and private keys for encryption
     Alice_private, Alice_public = gen_keypair(secp256k1)
     Bob_private, Bob_public = gen_keypair(secp256k1)
+
+    # Generate public and private keys for signature
+    Alice_private_sign, Alice_public_sign = gen_keypair(secp256k1)
+    Bob_private_sign, Bob_public_sign = gen_keypair(secp256k1)
 
     # Clear previous content and disable text editing while updating
     key_window.configure(state="normal")
@@ -88,6 +94,20 @@ def generate_keys():
     key_window.insert(
         tk.END,
         f"Bob's Public Key: ( {key_to_string(Bob_public.x)} , {key_to_string(Bob_public.y)} )\n",
+    )
+
+    # ----------
+    
+    key_window.insert(tk.END, f"---------------------------------------------------------------\n")
+    key_window.insert(tk.END, f"Alices's Private Key For Signature: {key_to_string(Alice_private_sign)}\n")
+    key_window.insert(
+        tk.END,
+        f"Alices's Public Key For Signature: ( {key_to_string(Alice_public_sign.x)} , {key_to_string(Alice_public_sign.y)} )\n",
+    )
+    key_window.insert(tk.END, f"Bob's Private Key For Signature: {key_to_string(Bob_private)}\n")
+    key_window.insert(
+        tk.END,
+        f"Bob's Public Key For Signature: ( {key_to_string(Bob_public_sign.x)} , {key_to_string(Bob_public_sign.y)} )\n",
     )
 
     key_window.configure(state="disabled")
@@ -113,9 +133,10 @@ def Alice_send():
     nonce = secret_suf[2:]  # like a time stamp
     ciphertext = XSalsa20_xor(plaintext, nonce, secret_total)
     add_log_message("generated ciphertext")
-    sig = schnorr.schnorr.schnorr_sign(ciphertext, Alice_private)
+    sig = schnorr.schnorr.schnorr_sign(ciphertext, Alice_private_sign)
     add_log_message("generated signature")
-    Alice_point_public = (Alice_public.x, Alice_public.y)
+    # Alice_point_public = (Alice_public.x, Alice_public.y)
+    Alice_point_public_sign = (Alice_public_sign.x, Alice_public_sign.y)
     ciphertext_base64 = base64.b64encode(ciphertext).decode("utf-8")
     add_log_message("generated base64 ciphertext: " + ciphertext_base64)
     C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Bob_public, Alice_private)
@@ -124,15 +145,15 @@ def Alice_send():
     add_log_message("encrypted secret key")
     # send to Bob
     add_log_message("Sent to Bob")
-    Bob_receive(ciphertext, sig, secret_key, Alice_point_public)
+    Bob_receive(ciphertext, sig, secret_key,Alice_point_public_sign)
     alice_text_area.insert(tk.END, "\n")
     alice_text_area.see(tk.END)
     bob_text_area.see(tk.END)
 
 
-def Bob_receive(ciphertext, sig, secret_key, Alice_point_public):
+def Bob_receive(ciphertext, sig, secret_key,Alice_point_public_sign):
 
-    if not schnorr.schnorr.schnorr_verify(ciphertext, Alice_point_public, sig):
+    if not schnorr.schnorr.schnorr_verify(ciphertext, Alice_point_public_sign, sig):
         add_log_message("Invalid Signature received from Alice")
         return
     add_log_message("Signature verified")
@@ -165,9 +186,10 @@ def Bob_send():
     nonce = secret_suf[2:]  # like a time stamp
     ciphertext = XSalsa20_xor(plaintext, nonce, secret_total)
     add_log_message("generated ciphertext")
-    sig = schnorr.schnorr.schnorr_sign(ciphertext, Bob_private)
+    sig = schnorr.schnorr.schnorr_sign(ciphertext, Bob_private_sign)
     add_log_message("generated signature")
     Bob_point_public = (Bob_public.x, Bob_public.y)
+    Bob_point_public_sign = (Bob_public_sign.x, Bob_public_sign.y)
     ciphertext_base64 = base64.b64encode(ciphertext).decode("utf-8")
     add_log_message("generated base64 ciphertext: " + ciphertext_base64)
     C1_pre, C2_pre = cipher_elg.encrypt(secret_pre, Alice_public, Bob_private)
@@ -176,15 +198,15 @@ def Bob_send():
     add_log_message("encrypted secret key")
     # send to Alice
     add_log_message("Sent to Alice")
-    Alice_receive(ciphertext, sig, secret_key, Bob_point_public)
+    Alice_receive(ciphertext, sig, secret_key, Bob_point_public_sign)
     bob_text_area.insert(tk.END, "\n")
     bob_text_area.see(tk.END)
     alice_text_area.see(tk.END)
 
 
-def Alice_receive(ciphertext, sig, secret_key, Bob_point_public):
+def Alice_receive(ciphertext, sig, secret_key, Bob_point_public_sign):
 
-    if not schnorr.schnorr.schnorr_verify(ciphertext, Bob_point_public, sig):
+    if not schnorr.schnorr.schnorr_verify(ciphertext, Bob_point_public_sign, sig):
         add_log_message("Invalid Signature received from Alice")
         return
     add_log_message("Signature verified")
@@ -219,7 +241,7 @@ generate_keys_button.pack(pady=5, padx=10)
 key_window = ttk.Frame(root)
 key_window.pack(pady=10, fill=tk.X, expand=True)
 
-key_window = tk.Text(key_window, height=4, width=60, **text_style)
+key_window = tk.Text(key_window, height=10, width=60, **text_style)
 key_window.pack(padx=10, pady=7, fill=tk.X, expand=True)
 key_window.configure(state="disabled")
 
